@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>View Reported Post</title>
+  <style>
+    /* match your admin styling, reusing background, etc. */
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: url("{{ url_for('static', filename='mapua_background.png') }}") no-repeat center center fixed;
+      background-size: cover;
+    }
+    .dark-overlay {
+      position: fixed;
+      top: 70px; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1;
+    }
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 70px;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
+    }
+    .search-container { flex: 1; }
+    .search-container input {
+      width: 300px;
+      padding: 7px;
+      border-radius: 5px;
+      border: none; outline: none;
+    }
+    .header-icons { display: flex; gap: 15px; margin-right: 15px; }
+    .header-icon {
+      width: 30px; height: 30px;
+      background-color: #666;
+      border-radius: 50%;
+    }
+    .user-profile { color: #fff; font-weight: bold; }
+
+    .main-content {
+      position: relative; z-index: 2; display: flex;
+      margin-top: 70px; min-height: calc(100vh - 70px);
+    }
+    .content-area {
+      flex: 1; padding: 20px; margin-right: 220px; color: #fff;
+    }
+    .content-area h2 { font-size: 1.6rem; margin-bottom: 10px; }
+    .content-area a {
+      color: #a97cff; text-decoration: none; font-weight: bold;
+      margin-bottom: 15px; display: inline-block;
+    }
+    .content-area a:hover { text-decoration: underline; }
+
+    .sidebar {
+      position: fixed; top: 70px; right: 0; width: 220px; bottom: 0;
+      background-color: rgba(0,0,0,0.8); padding: 20px; color: #fff;
+      z-index: 1000; overflow-y: auto;
+    }
+    .sidebar a {
+      display: block; color: #fff; text-decoration: none;
+      margin-bottom: 10px; font-size: 0.9rem;
+    }
+    .sidebar a:hover { text-decoration: underline; }
+    .sidebar hr { margin: 15px 0; border: 0; border-top: 1px solid #666; }
+
+    /* Post styling */
+    .post-card {
+      background-color: #fefefe; color: #000;
+      border-radius: 8px; padding: 20px; margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .post-top { margin-bottom: 5px; font-size: 0.9rem; color: #333; }
+    .post-content { margin-bottom: 10px; font-size: 1rem; }
+    .post-bottom { font-size: 0.85rem; color: #444; }
+    .comments-section {
+      background-color: #fafafa; color: #000;
+      margin-top: 15px; padding: 10px; border-radius: 6px;
+    }
+    .comment { border-bottom: 1px solid #ccc; padding: 5px 0; }
+    .comment:last-child { border-bottom: none; }
+    .comment-author { font-size: 0.85rem; color: #333; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <!-- Same header as admin dashboard -->
+  <div class="header">
+    <div class="search-container">
+      <input type="text" placeholder="Search...">
+    </div>
+    <div class="user-profile">
+      ADMIN {{ session.get('student_id', 'Admin') }}
+    </div>
+  </div>
+
+  <div class="dark-overlay"></div>
+
+  <div class="main-content">
+    <div class="content-area">
+      <h2>View Reported Post</h2>
+      <hr>
+
+      <!-- Single reported post details -->
+      <div class="post-card">
+        <div class="post-top">
+          <strong>{{ post_author }}</strong>
+          {% if post_filter %}
+            <span class="post-filter">{{ post_filter }}</span>
+          {% endif %}
+          <br>
+          at {{ post_created_at }} says:
+        </div>
+        <div class="post-content">
+          {{ post_content }}
+        </div>
+        <div class="post-bottom">
+          Likes: {{ like_count }} | Dislikes: {{ dislike_count }}
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <h4>Comments</h4>
+          {% for c in comments %}
+          <div class="comment">
+            <div class="comment-author">
+              {{ c.author }} at {{ c.created_at }}
+            </div>
+            <div class="comment-content">
+              {{ c.content }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <a href="{{ url_for('admin_view_reports') }}">Back to Reports List</a>
+    </div>
+
+    <div class="sidebar">
+      <h3>ADMIN MENU</h3>
+      <a href="{{ url_for('admin_manage_feedback') }}">MANAGE FEEDBACK</a>
+      <a href="{{ url_for('admin_view_reports') }}">VIEW REPORTS</a>
+      <a href="{{ url_for('logout') }}">LOG OUT</a>
+      <hr>
+    </div>
+  </div>
+</body>
+</html>

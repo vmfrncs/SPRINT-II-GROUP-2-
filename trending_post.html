@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Trending Post View</title>
+  <style>
+    /* Reset & Body */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: url("{{ url_for('static', filename='mapua_background.png') }}") no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    /* Dark overlay behind the content (below the header) */
+    .dark-overlay {
+      position: fixed;
+      top: 70px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1;
+    }
+
+    /* Header (Fixed) */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 70px;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
+    }
+    .search-container {
+      flex: 1;
+    }
+    .search-container input {
+      width: 300px;
+      padding: 7px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+    }
+    .header-icons {
+      display: flex;
+      gap: 15px;
+      margin-right: 15px;
+    }
+    .header-icon {
+      width: 30px;
+      height: 30px;
+      background-color: #666;
+      border-radius: 50%;
+    }
+    .user-profile {
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Main Content layout */
+    .main-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      margin-top: 70px;  /* So we don't go under header */
+      min-height: calc(100vh - 70px);
+    }
+
+    /* Center area where we show the single post */
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      margin-right: 220px; /* reserve space for sidebar */
+      color: #fff;
+    }
+    .content-area h2 {
+      font-size: 1.6rem;
+      margin-bottom: 20px;
+    }
+    .content-area a {
+      color: #a97cff;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 10px;
+    }
+    .content-area a:hover {
+      text-decoration: underline;
+    }
+
+    /* Sidebar (fixed, same style as SAF dashboard) */
+    .sidebar {
+      position: fixed;
+      top: 70px;
+      right: 0;
+      width: 220px;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      color: #fff;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .sidebar h3 {
+      margin-bottom: 10px;
+    }
+    .sidebar hr {
+      margin: 15px 0;
+      border: 0;
+      border-top: 1px solid #666;
+    }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      text-decoration: none;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+    .sidebar p {
+      font-size: 0.85rem;
+      color: #ccc;
+    }
+
+    /* Single post card style (like saf_dashboard) */
+    .post-card {
+      background-color: #fefefe;
+      color: #000;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .post-top {
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+      color: #333;
+    }
+    .post-content {
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+    .post-bottom {
+      font-size: 0.85rem;
+      color: #444;
+      margin-bottom: 10px;
+    }
+
+    /* Post actions */
+    .post-actions {
+      margin-top: 10px;
+    }
+    .post-actions form {
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .post-actions button {
+      background-color: #ddd;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-right: 3px;
+    }
+    .post-actions button:hover {
+      background-color: #ccc;
+    }
+    .comment-btn {
+      background-color: #d8d8d8;
+    }
+    .comment-btn:hover {
+      background-color: #bcbcbc;
+    }
+    .report-btn {
+      background-color: #800000;
+      color: #fff;
+    }
+    .report-btn:hover {
+      background-color: #a00000;
+    }
+
+    /* Comments section */
+    .comments-section {
+      background-color: #fafafa;
+      color: #000;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .comment {
+      border-bottom: 1px solid #ccc;
+      padding: 5px 0;
+    }
+    .comment:last-child {
+      border-bottom: none;
+    }
+    .comment-author {
+      font-size: 0.85rem;
+      color: #333;
+      font-weight: bold;
+    }
+    .comment-form {
+      margin-top: 10px;
+    }
+    .comment-form textarea {
+      width: 95%;
+      height: 40px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin-bottom: 5px;
+      padding: 5px;
+      resize: vertical;
+    }
+    .comment-form button {
+      background-color: #555;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .comment-form button:hover {
+      background-color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fixed Header -->
+  <div class="header">
+    <div class="search-container">
+      <input type="text" placeholder="Search...">
+    </div>
+    <div class="user-profile">
+      ANONYMOUS {{ session.get('student_id', '1') }}
+    </div>
+  </div>
+
+  <!-- Dark overlay below the header -->
+  <div class="dark-overlay"></div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Center area: single trending post -->
+    <div class="content-area">
+      <h2>Trending Post</h2>
+
+      <!-- Single post card -->
+      <div class="post-card">
+        <div class="post-top">
+          <strong>Trending Post ID: {{ post_id }}</strong>
+        </div>
+        <div class="post-content">
+          {{ content }}
+        </div>
+        <div class="post-bottom">
+          Likes: {{ like_count }} | Dislikes: {{ dislike_count }}
+        </div>
+
+        <!-- Post actions (like/dislike) -->
+        <div class="post-actions">
+          <form action="{{ url_for('like_post', post_id=post_id, action='like') }}" method="POST">
+            <button type="submit">Like</button>
+          </form>
+          <form action="{{ url_for('like_post', post_id=post_id, action='dislike') }}" method="POST">
+            <button type="submit">Dislike</button>
+          </form>
+          <!-- (Optional) If you want a “Report” or “Comment” here as well, just copy your buttons. -->
+        </div>
+
+        <!-- Comments Section -->
+        <div class="comments-section">
+          <h4>Comments</h4>
+          {% for c in comments %}
+            <div class="comment">
+              <div class="comment-author">{{ c.author }} at {{ c.created_at }}</div>
+              <div class="comment-content">{{ c.content }}</div>
+            </div>
+          {% endfor %}
+
+          <!-- New Comment Form -->
+          <div class="comment-form">
+            <form method="POST" action="{{ url_for('comment_post', post_id=post_id) }}">
+              <textarea name="comment_content" placeholder="Add a comment..." required></textarea>
+              <br>
+              <button type="submit">Submit Comment</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Link back to SAF dashboard -->
+      <a href="{{ url_for('saf_dashboard') }}">BACK TO DASHBOARD</a>
+    </div>
+
+    <!-- Right sidebar -->
+    <div class="sidebar">
+      <h3>TRENDING POST</h3>
+      <p>Viewing a single trending post. Comments, likes, & dislikes included.</p>
+      <hr>
+
+      <a href="{{ url_for('submitted_feedback') }}">SUBMITTED FEEDBACK</a>
+      <a href="{{ url_for('manage_account') }}">MANAGE ACCOUNT</a>
+      <a href="{{ url_for('logout') }}">LOG OUT</a>
+    </div>
+  </div>
+</body>
+</html>

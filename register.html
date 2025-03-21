@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <style>
+      /* Reset & Fullscreen */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        width: 100%;
+        height: 100%;
+        font-family: Arial, sans-serif;
+
+        /* Use the background image from static/ */
+        background: url("{{ url_for('static', filename='mapua_background.png') }}")
+                    no-repeat center center fixed;
+        background-size: cover;
+      }
+
+      /* Semi-transparent overlay to center content and darken BG */
+      .overlay {
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .title {
+        font-size: 48px;
+        font-weight: bold;
+        color: #fff;
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        font-size: 24px;
+        color: #fff;
+        margin-bottom: 40px;
+      }
+
+      ul {
+        color: red;
+        margin-bottom: 15px;
+      }
+
+      /* Registration form container */
+      .register-form {
+        background-color: rgba(255, 255, 255, 0.15);
+        padding: 20px 30px;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      /* Input fields & selects */
+      .register-form input[type="text"],
+      .register-form input[type="password"],
+      .register-form select {
+        margin-bottom: 15px;
+        padding: 10px;
+        width: 250px;
+        border: none;
+        border-radius: 5px;
+      }
+
+      /* Register button */
+      .register-form button {
+        background-color: #800000; /* Mapúa-like maroon */
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      .register-form button:hover {
+        background-color: #a00000;
+      }
+
+      /* Link to login */
+      .register-form a {
+        color: #fff;
+        text-decoration: none;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      .register-form a:hover {
+        text-decoration: underline;
+      }
+    </style>
+</head>
+<body>
+  <div class="overlay">
+
+    <div class="title">ANONYMOUS FEEDBACK PLATFORM</div>
+    <div class="subtitle">MAPUA UNIVERSITY</div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(category_filter=["error","success"]) %}
+      {% if messages %}
+        <ul>
+          {% for msg in messages %}
+            <li>{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form class="register-form" method="POST">
+      <input type="text" name="student_id" placeholder="STUDENT ID" required>
+
+      <input type="password" name="password" placeholder="PASSWORD" required>
+      <input type="password" name="confirm_password" placeholder="CONFIRM PASSWORD" required>
+
+      <!-- Campus -->
+      <select name="campus">
+        <option value="Intramuros">Intramuros</option>
+        <option value="Makati">Makati</option>
+      </select>
+
+      <!-- Role -->
+      <select name="role">
+        <option value="Student">Student</option>
+        <option value="Alumni">Alumni</option>
+        <option value="Faculty">Faculty</option>
+        <!-- ADDED ADMIN -->
+        <option value="Admin">Admin</option>
+      </select>
+
+      <button type="submit">REGISTER</button>
+
+      <a href="{{ url_for('login') }}">ALREADY HAVE AN ACCOUNT? LOG IN</a>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Manage Feedback</title>
+  <style>
+    /* Basic resets & background */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: url("{{ url_for('static', filename='mapua_background.png') }}") no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    /* Dark overlay below header */
+    .dark-overlay {
+      position: fixed;
+      top: 70px;
+      left: 0; right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 1;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 70px;
+      background-color: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
+    }
+    .search-container {
+      flex: 1;
+    }
+    .search-container input {
+      width: 300px;
+      padding: 7px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+    }
+    .header-icons {
+      display: flex;
+      gap: 15px;
+      margin-right: 15px;
+    }
+    .header-icon {
+      width: 30px; height: 30px;
+      background-color: #666;
+      border-radius: 50%;
+    }
+    .user-profile {
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Main content layout */
+    .main-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      margin-top: 70px;
+      min-height: calc(100vh - 70px);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 70px; right: 0;
+      width: 220px; bottom: 0;
+      background-color: rgba(0,0,0,0.8);
+      padding: 20px;
+      color: #fff;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .sidebar h3 {
+      margin-bottom: 10px;
+    }
+    .sidebar a {
+      display: block; color: #fff;
+      text-decoration: none;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+    .sidebar hr {
+      margin: 15px 0;
+      border: 0; border-top:1px solid #666;
+    }
+
+    /* Content area for managing posts */
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      margin-right: 220px;
+      color: #fff;
+    }
+    .content-area h2 {
+      font-size: 1.6rem;
+      margin-bottom: 10px;
+    }
+
+    /* Post Card styling */
+    .post-card {
+      background-color: #fefefe;
+      color: #000;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .post-top {
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+      color: #333;
+    }
+    .post-filter {
+      display: inline-block;
+      background-color: #666;
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 4px;
+      margin-left: 10px;
+      font-size: 0.8em;
+    }
+    .post-content {
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+    .post-bottom {
+      font-size: 0.85rem;
+      color: #444;
+    }
+
+    /* Admin actions: add comment, delete post */
+    .admin-actions {
+      margin-top: 10px;
+    }
+    .admin-actions form {
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .admin-actions button {
+      background-color: #f44336; /* a red button for "delete" */
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+    .admin-actions button:hover {
+      background-color: #d32f2f;
+      transform: scale(1.02);
+    }
+
+    .comment-form {
+      margin-top: 10px;
+      background-color: #fafafa;
+      color: #000;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .comment-form textarea {
+      width: 95%;
+      height: 40px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin-bottom: 5px;
+      padding: 5px;
+      resize: vertical;
+    }
+    .comment-form button {
+      background-color: #555;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+    .comment-form button:hover {
+      background-color: #333;
+      transform: scale(1.02);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="search-container">
+      <input type="text" placeholder="Search...">
+    </div>
+    <div class="user-profile">
+      ADMIN {{ session.get('student_id', 'Admin') }}
+    </div>
+  </div>
+
+  <!-- Dark overlay -->
+  <div class="dark-overlay"></div>
+
+  <!-- Main content row -->
+  <div class="main-content">
+    <!-- Center area: Manage feedback -->
+    <div class="content-area">
+      <h2>Manage Feedback (Admin)</h2>
+      <hr>
+
+      {% for post in posts %}
+      <div class="post-card">
+        <div class="post-top">
+          <!-- Use anonymous_hash for the post owner -->
+          <strong>Anonymous {{ post.anonymous_hash }}</strong>
+          {% if post.post_filter %}
+            <span class="post-filter">{{ post.post_filter }}</span>
+          {% endif %}
+          <br>
+          at {{ post.created_at }} says:
+        </div>
+        <div class="post-content">
+          {{ post.content }}
+        </div>
+        <div class="post-bottom">
+          Likes: {{ post.like_count }} | Dislikes: {{ post.dislike_count }}
+        </div>
+
+        <!-- Show comments -->
+        <div class="comments-section" style="margin-top:10px;">
+          <h4>Comments</h4>
+          {% for c in post.comments %}
+            <div class="comment">
+              <div class="comment-author">
+                Anonymous {{ c.anonymous_hash }} at {{ c.created_at }}
+              </div>
+              <div class="comment-content">
+                {{ c.content }}
+              </div>
+            </div>
+          {% endfor %}
+
+          <div class="comment-form">
+            <form method="POST" action="{{ url_for('admin_comment', post_id=post.post_id) }}">
+              <textarea name="comment_content" placeholder="Add comment as Admin..." required></textarea>
+              <br>
+              <button type="submit">Comment (Admin)</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Admin actions: delete post, etc. -->
+        <div class="admin-actions">
+          <form method="POST" action="{{ url_for('admin_delete_post', post_id=post.post_id) }}">
+            <button type="submit">Delete This Post</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h3>ADMIN MENU</h3>
+      <a href="{{ url_for('admin_dashboard') }}">BACK TO DASHBOARD</a>
+      <hr>
+      <a href="{{ url_for('logout') }}">LOG OUT</a>
+    </div>
+  </div>
+</body>
+</html>

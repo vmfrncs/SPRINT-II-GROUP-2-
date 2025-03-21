@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reported Posts</title>
+  <style>
+    /* Basic resets & background */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: url("{{ url_for('static', filename='mapua_background.png') }}") no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    /* Dark overlay behind main content below header */
+    .dark-overlay {
+      position: fixed;
+      top: 70px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1;
+    }
+
+    /* Header (reuse style from admin dashboard) */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 70px;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
+    }
+    .search-container {
+      flex: 1;
+    }
+    .search-container input {
+      width: 300px;
+      padding: 7px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+    }
+    .header-icons {
+      display: flex;
+      gap: 15px;
+      margin-right: 15px;
+    }
+    .header-icon {
+      width: 30px;
+      height: 30px;
+      background-color: #666;
+      border-radius: 50%;
+    }
+    .user-profile {
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Main content layout */
+    .main-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      margin-top: 70px;
+      min-height: calc(100vh - 70px);
+    }
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      margin-right: 220px;
+      color: #fff;
+    }
+    .content-area h2 {
+      font-size: 1.6rem;
+      margin-bottom: 10px;
+    }
+    .content-area a {
+      color: #a97cff;
+      text-decoration: none;
+      font-weight: bold;
+      margin-bottom: 15px;
+      display: inline-block;
+    }
+    .content-area a:hover {
+      text-decoration: underline;
+    }
+
+    /* Right sidebar (same style) */
+    .sidebar {
+      position: fixed;
+      top: 70px;
+      right: 0;
+      width: 220px;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      color: #fff;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .sidebar h3 {
+      margin-bottom: 10px;
+    }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      text-decoration: none;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+    .sidebar hr {
+      margin: 15px 0;
+      border: 0;
+      border-top: 1px solid #666;
+    }
+
+    /* Table of reported posts */
+    .reports-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background-color: #fefefe;
+      color: #000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .reports-table th,
+    .reports-table td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      font-size: 0.9rem;
+    }
+    .reports-table th {
+      background-color: #ddd;
+      text-align: left;
+    }
+    .post-content-cell {
+      max-width: 300px;
+      overflow-wrap: break-word;
+      font-size: 0.9rem;
+    }
+    .reason-cell {
+      max-width: 200px;
+      overflow-wrap: break-word;
+      font-size: 0.85rem;
+      color: #800000;
+    }
+
+    /* A little styling for action buttons/links */
+    .action-link {
+      display: inline-block;
+      background-color: #555;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      margin-right: 5px;
+      transition: background-color 0.2s;
+      font-size: 0.85rem;
+    }
+    .action-link:hover {
+      background-color: #333;
+    }
+    .action-button {
+      background-color: #800000; 
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 0.85rem;
+    }
+    .action-button:hover {
+      background-color: #a00000;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Same fixed header as admin dashboard -->
+  <div class="header">
+    <div class="search-container">
+      <input type="text" placeholder="Search...">
+    </div>
+    <div class="user-profile">
+      ADMIN {{ session.get('student_id', 'Admin') }}
+    </div>
+  </div>
+
+  <!-- Dark overlay behind main content -->
+  <div class="dark-overlay"></div>
+
+  <div class="main-content">
+    <div class="content-area">
+      <h2>Reported Posts</h2>
+      <hr>
+      <p>Below is a list of posts that have been reported by users, along with the reason given.</p>
+
+      <table class="reports-table">
+        <tr>
+          <!-- We remove "Report ID" and "Post ID" columns -->
+          <th>Reporter (Anonymous Hash)</th>
+          <th>Reason</th>
+          <th>Post Content</th>
+          <th>Reported At</th>
+          <th>Actions</th>
+        </tr>
+        {% for r in reports %}
+        <tr>
+          <!-- Show the reporter's "Anonymous {reporter_hash} ({reporter_role})" -->
+          <td>Anonymous {{ r.reporter_hash }} ({{ r.reporter_role }})</td>
+          <td class="reason-cell">{{ r.reason }}</td>
+          <td class="post-content-cell">{{ r.post_content }}</td>
+          <td>{{ r.report_time }}</td>
+          <td>
+            <!-- "View" button or link -> admin_view_reported_post -->
+            <a href="{{ url_for('admin_view_reported_post', post_id=r.post_id) }}" class="action-link">View</a>
+
+            <!-- "Delete" form for the post -->
+            <form action="{{ url_for('admin_delete_post', post_id=r.post_id) }}" method="POST" style="display:inline;">
+              <button type="submit" class="action-button">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <!-- Right sidebar -->
+    <div class="sidebar">
+      <h3>ADMIN MENU</h3>
+      <a href="{{ url_for('admin_manage_feedback') }}">MANAGE FEEDBACK</a>
+      <a href="{{ url_for('admin_view_reports') }}">VIEW REPORTS</a>
+      <a href="{{ url_for('logout') }}">LOG OUT</a>
+
+      <hr>
+    </div>
+  </div>
+</body>
+</html>
