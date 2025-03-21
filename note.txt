@@ -1,0 +1,69 @@
+-- 1. Create the Users table
+CREATE TABLE IF NOT EXISTS users (
+    user_id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    campus VARCHAR(50) NOT NULL,  -- e.g. 'Intramuros' or 'Makati'
+    role VARCHAR(50) NOT NULL,    -- e.g. 'Student', 'Alumni', 'Faculty', 'Admin'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Create the Posts table
+CREATE TABLE IF NOT EXISTS posts (
+    post_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(user_id),
+    title VARCHAR(255) NOT NULL DEFAULT 'Feedback',
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. Create the Comments table
+CREATE TABLE IF NOT EXISTS comments (
+    comment_id SERIAL PRIMARY KEY,
+    post_id INT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(user_id),
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. Create the PostLikes table for like/dislike tracking
+CREATE TABLE IF NOT EXISTS post_likes (
+    like_id SERIAL PRIMARY KEY,
+    post_id INT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(user_id),
+    like_dislike BOOLEAN NOT NULL, -- TRUE for like, FALSE for dislike
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5. Optional: Add indexes for performance
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_posts_user_id ON posts(user_id);
+CREATE INDEX idx_comments_post_id ON comments(post_id);
+CREATE INDEX idx_post_likes_post_id ON post_likes(post_id);
+
+
+
+-- 1) Add a random "anonymous_hash" column to users:
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS anonymous_hash VARCHAR(20);
+
+-- 2) Add a "post_filter" column to store the chosen filter/tag for the post:
+ALTER TABLE posts
+  ADD COLUMN IF NOT EXISTS post_filter VARCHAR(50);
+
+-- 3) Create a comments table for post comments:
+CREATE TABLE IF NOT EXISTS comments (
+  comment_id SERIAL PRIMARY KEY,
+  post_id INT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
+  user_id INT NOT NULL REFERENCES users(user_id),
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE posts 
+  DROP CONSTRAINT posts_user_id_fkey,
+  ADD CONSTRAINT posts_user_id_fkey
+     FOREIGN KEY (user_id) REFERENCES users(user_id)
+     ON DELETE CASCADE;
+
